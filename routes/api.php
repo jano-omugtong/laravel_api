@@ -28,4 +28,4 @@ Route::group([
     ], function() {
         Route::get('logout', 'AuthController@logout');
     });
-})
+});
