@@ -140,6 +140,32 @@ class AuthController extends Controller
                 'message' => 'Unauthorized'
             ], 401);
     }
+
+    /**
+     * Change the User Password
+     *
+     * @return [json] user object
+     */
+    public function change_pass(Request $request)
+    {
+        $request->validate([
+            'password' => 'required|string',
+            'new_password' => 'required|string|confirmed'
+        ]);        
+                
+        if(!Auth::guard('web')->attempt(['id' => Auth::id(), 'password' => $request->password]))
+            return response()->json([
+                    'message' => 'Incorrect Password'
+                ], 401);
+        
+        $user = User::where('id', Auth::id())->first();
+        $user->password = bcrypt($request->new_password);
+        $user->save();    
+        
+        return response()->json([
+                'message' => 'Password changed successfully.'
+            ], 200);
+    }
   
     /**
      * Logout user (Revoke the token)
