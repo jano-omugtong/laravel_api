@@ -28,20 +28,19 @@ class AuthController extends Controller
     public function signup(Request $request)
     {
         $request->validate([
-            'last_name' => 'required|string',
             'email' => 'required|string|email|unique:users',
             'password' => 'required|string|confirmed'
         ]);
         
         $user = new User([
             'last_name' => $request->last_name,
-            'first_name' => isset($request->first_name) ? $request->first_name : ' ',
+            'first_name' => $request->first_name,
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'sex' => isset($request->sex) ? $request->sex : 0,
             'civil_status' => isset($request->civil_status) ? $request->civil_status : 'N',
-            'address' => isset($request->address) ? $request->address : ' ',
-            'nationality' => isset($request->nationality) ? $request->nationality : ' ',
+            'address' => $request->address,
+            'nationality' => $request->nationality,
             'activation_token' => Str::random(60),
         ]);
 
@@ -124,6 +123,23 @@ class AuthController extends Controller
                 'expires_at' => Carbon::parse($tokenResult->token->expires_at)->toDateTimeString()
             ]);
     }
+
+    /**
+     * Unauthorized user or Home guest show user list
+     *
+     * @return [string] message
+     */
+    public function home($tolist)
+    {
+        error_log(print_r($tolist, true));
+        if ($tolist){
+            return User::all()->makeHidden(['email', 'last_name'])->toArray();
+        }
+
+        return response()->json([
+                'message' => 'Unauthorized'
+            ], 401);
+    }
   
     /**
      * Logout user (Revoke the token)
@@ -136,7 +152,7 @@ class AuthController extends Controller
         
         return response()->json([
                     'message' => 'Successfully logged out'
-            ], 201);
+            ], 200);
     }
   
 }
