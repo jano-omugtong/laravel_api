@@ -4,8 +4,10 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Carbon\Carbon;
 use App\User;
+use App\Notifications\SignupActivate;
 
 class AuthController extends Controller
 {
@@ -40,13 +42,41 @@ class AuthController extends Controller
             'civil_status' => isset($request->civil_status) ? $request->civil_status : 'N',
             'address' => isset($request->address) ? $request->address : ' ',
             'nationality' => isset($request->nationality) ? $request->nationality : ' ',
+            'activation_token' => Str::random(60),
         ]);
 
         $user->save();
+
+        $user->notify(new SignupActivate($user));
         
         return response()->json([
                 'message' => 'You have signed up successfully!'
             ], 201);
+    }
+
+    /**
+     * Create user
+     *
+     * @param  [string] token
+     * @return [string] message
+     * @return [json] user
+     */
+    public function signupActivate($token)
+    {
+        $user = User::where('activation_token', $token)->first();
+        
+        if (!$user) {
+            return response()->json([
+                    'message' => 'This activation token is invalid.'
+                ], 404);
+        }
+
+        $user->active = true;
+        $user->activation_token = '';
+
+        $user->save();
+
+        return $user;
     }
   
     /**
@@ -68,8 +98,10 @@ class AuthController extends Controller
         ]);        
         
         $credentials = request(['email', 'password']);
+        $credentials['active'] = 1;
+        $credentials['deleted_at'] = null;
         
-        if(!Auth::attempt($credentials)){
+        if (!Auth::attempt($credentials)){
             return response()->json([
                     'message' => 'Login failed. Incorrect email or password.'
                 ], 401);
@@ -103,8 +135,8 @@ class AuthController extends Controller
         $request->user()->token()->revoke();
         
         return response()->json([
-                'message' => 'Successfully logged out'
-            ]);
+                    'message' => 'Successfully logged out'
+            ], 201);
     }
   
 }

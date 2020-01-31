@@ -23,8 +23,11 @@ class CreateUsersTable extends Migration
             $table->char('civil_status');
             $table->string('address');
             $table->string('nationality');
+            $table->boolean('active')->default(false);
+            $table->string('activation_token');
             $table->rememberToken();
             $table->timestamps();
+            $table->softDeletes();
         });
     }
 
