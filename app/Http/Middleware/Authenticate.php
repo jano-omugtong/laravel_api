@@ -10,12 +10,16 @@ class Authenticate extends Middleware
      * Get the path the user should be redirected to when they are not authenticated.
      *
      * @param  \Illuminate\Http\Request  $request
-     * @return string|null
+     * @return api/auth/home list of users|unauthorized
      */
     protected function redirectTo($request)
     {
-        if (! $request->expectsJson()) {
-            return route('login');
+        if (!auth('api')->check()) {
+            if ($request->path() == "api/auth/users"){
+                return route('home', 1);
+            }
+
+            return route('home', 0);
         }
     }
 }
