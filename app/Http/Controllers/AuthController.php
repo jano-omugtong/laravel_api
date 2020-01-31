@@ -33,13 +33,13 @@ class AuthController extends Controller
         
         $user = new User([
             'last_name' => $request->last_name,
-            'first_name' => $request->first_name,
+            'first_name' => isset($request->first_name) ? $request->first_name : ' ',
             'email' => $request->email,
             'password' => bcrypt($request->password),
             'sex' => isset($request->sex) ? $request->sex : 0,
             'civil_status' => isset($request->civil_status) ? $request->civil_status : 'N',
-            'address' => $request->address,
-            'nationality' => $request->nationality,
+            'address' => isset($request->address) ? $request->address : ' ',
+            'nationality' => isset($request->nationality) ? $request->nationality : ' ',
         ]);
 
         $user->save();
